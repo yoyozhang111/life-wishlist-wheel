@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Experience is everything!</title>
+  <!-- 引入Tailwind CSS用于样式 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入Font Awesome图标 -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 自定义Tailwind配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#7C3AED', // 使用第一版本的紫色
+            secondary: '#EC4899', // 辅助色：浅粉
+            accent: '#F59E0B', // 强调色：暖橙
+            success: '#10B981', // 完成色：清新绿
+            dark: '#1E293B',
+            light: '#F8FAFC'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif', 'PingFang SC'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .spin-transition {
+        transition: transform 6s cubic-bezier(0.17, 0.67, 0.13, 0.99);
+      }
+      .pointer {
+        clip-path: polygon(50% 0%, 35% 100%, 65% 100%);
+      }
+      .card-hover {
+        @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+      }
+      .completed-item {
+        @apply opacity-80 line-through text-gray-500;
+      }
+      .wish-card {
+        @apply bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-all;
+      }
+      /* 自定义滚动条样式 */
+      .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: rgba(156, 163, 175, 0.5);
+        border-radius: 20px;
+      }
+      /* 数据管理按钮样式 */
+      .data-management {
+        @apply mt-2 text-xs text-gray-500 hover:text-gray-700 transition-colors;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-light to-gray-100 min-h-screen font-sans text-dark flex flex-col">
+  <div class="container mx-auto px-4 py-8 max-w-7xl flex-grow">
+    <!-- 头部标题 -->
+    <header class="text-center mb-12">
+      <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary mb-2">
+        人生未完成清单
+      </h1>
+      <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+        设定可支配时间和预算，转动转盘解锁下一个体验！完成后勾选，记录每一步成长～
+        <span class="block text-sm text-primary mt-1"><i class="fa fa-database mr-1"></i>数据已自动保存到浏览器</span>
+      </p>
+    </header>
+
+    <!-- 主要内容区：调整为3列布局，参考free.txt -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- 左侧：筛选条件 + 新增愿望（占1列） -->
+      <div class="lg:col-span-1 space-y-6">
+        <!-- 筛选卡片 -->
+        <div class="wish-card card-hover">
+          <h2 class="text-xl font-bold mb-4 flex items-center text-primary">
+            <i class="fa fa-filter mr-2"></i> 筛选条件
+          </h2>
+          
+          <!-- 时间筛选 -->
+          <div class="mb-5">
+            <label class="block text-gray-700 font-medium mb-2">可支配时间</label>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="time" value="day" checked class="form-radio text-primary h-5 w-5">
+                <span class="ml-2">1天以内</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="time" value="weekend" class="form-radio text-primary h-5 w-5">
+                <span class="ml-2">周末（2天）</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="time" value="week" class="form-radio text-primary h-5 w-5">
+                <span class="ml-2">1周以内</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="time" value="month" class="form-radio text-primary h-5 w-5">
+                <span class="ml-2">1个月以内</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- 经费筛选 -->
+          <div class="mb-5">
+            <label class="block text-gray-700 font-medium mb-2">可支配经费</label>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="radio" name="budget" value="low" checked class="form-radio text-secondary h-5 w-5">
+                <span class="ml-2">低（≤1000元）</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="budget" value="medium" class="form-radio text-secondary h-5 w-5">
+                <span class="ml-2">中（1000-5000元）</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="budget" value="high" class="form-radio text-secondary h-5 w-5">
+                <span class="ml-2">高（5000-20000元）</span>
+              </label>
+              <label class="flex items-center">
+                <input type="radio" name="budget" value="luxury" class="form-radio text-secondary h-5 w-5">
+                <span class="ml-2">豪华（≥20000元）</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- 应用筛选按钮 - 使用第一版本的紫色 -->
+          <button id="applyFilter" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center">
+            <i class="fa fa-check mr-2"></i> 应用筛选
+          </button>
+          
+          <!-- 数据管理按钮 -->
+          <div class="flex justify-between mt-4 pt-4 border-t border-gray-100">
+            <button id="exportData" class="data-management flex items-center">
+              <i class="fa fa-download mr-1"></i> 导出数据
+            </button>
+            <button id="importData" class="data-management flex items-center">
+              <i class="fa fa-upload mr-1"></i> 导入数据
+            </button>
+            <button id="resetData" class="data-management flex items-center text-red-500 hover:text-red-700">
+              <i class="fa fa-refresh mr-1"></i> 重置数据
+            </button>
+          </div>
+        </div>
+        
+        <!-- 添加项目卡片 -->
+        <div class="wish-card card-hover">
+          <h2 class="text-xl font-bold mb-4 flex items-center text-secondary">
+            <i class="fa fa-plus-circle mr-2"></i> 添加新愿望
+          </h2>
+          
+          <form id="addItemForm" class="space-y-4">
+            <div>
+              <label class="block text-gray-700 font-medium mb-1">愿望名称</label>
+              <input type="text" id="itemName" placeholder="例如：跳伞、蹦极、看极光..." required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-gray-700 font-medium mb-1">所需时间</label>
+                <select id="itemTime" required
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                  <option value="day">1天以内</option>
+                  <option value="weekend">周末（2天）</option>
+                  <option value="week">1周以内</option>
+                  <option value="month">1个月以内</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-gray-700 font-medium mb-1">所需经费</label>
+                <select id="itemBudget" required
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                  <option value="low">低（≤1000元）</option>
+                  <option value="medium">中（1000-5000元）</option>
+                  <option value="high">高（5000-20000元）</option>
+                  <option value="luxury">豪华（≥20000元）</option>
+                </select>
+              </div>
+            </div>
+            
+            <button type="submit" class="w-full bg-secondary hover:bg-secondary/90 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center">
+              <i class="fa fa-plus mr-2"></i> 添加到清单
+            </button>
+          </form>
+        </div>
+      </div>
+      
+      <!-- 中间：转盘区域（占1列，居中且更大） -->
+      <div class="lg:col-span-1 flex flex-col items-center justify-center">
+        <div class="relative w-full max-w-md mb-8">
+          <!-- 转盘容器 -->
+          <div class="aspect-square rounded-full relative overflow-hidden border-8 border-white shadow-2xl" id="wheelContainer">
+            <div id="wheel" class="w-full h-full spin-transition">
+              <!-- 转盘扇区将通过JS动态生成 -->
+            </div>
+            
+            <!-- 转盘中心 - 使用第一版本的紫色 -->
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg z-10">
+              <div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold text-lg cursor-pointer hover:bg-primary/90 transition-all" id="spinButton">
+                转动
+              </div>
+            </div>
+          </div>
+          
+          <!-- 指针 -->
+          <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -z-10 w-10 h-16 bg-accent pointer shadow-md"></div>
+        </div>
+        
+        <!-- 结果显示 -->
+        <div class="wish-card card-hover w-full max-w-md">
+          <h2 class="text-xl font-bold mb-4 text-center">抽奖结果</h2>
+          <div id="result" class="text-center py-6">
+            <p class="text-gray-500 mb-2">点击上方按钮开始转动</p>
+            <p class="text-2xl font-bold text-primary min-h-[60px]" id="resultText">-</p>
+          </div>
+          <div id="itemDetails" class="hidden text-left space-y-2 text-gray-700">
+            <div class="flex justify-between">
+              <span class="font-medium">所需时间：</span>
+              <span id="resultTime">-</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-medium">所需经费：</span>
+              <span id="resultBudget">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 右侧：未完成清单 + 已完成清单（占1列，上下布局） -->
+      <div class="lg:col-span-1 space-y-6">
+        <!-- 未完成清单（上方） -->
+        <div class="wish-card card-hover">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold flex items-center text-primary">
+              <i class="fa fa-list-alt mr-2"></i> 未完成清单
+            </h2>
+            <span id="pendingCount" class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">0项</span>
+          </div>
+          
+          <!-- 动态调整列表容器高度 -->
+          <div id="pendingWishList" class="min-h-[80px] max-h-[350px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+            <!-- 未完成项目由JS动态生成 -->
+          </div>
+          
+          <button id="clearPendingAll" class="w-full mt-4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg transition-all duration-300 flex items-center justify-center">
+            <i class="fa fa-trash-o mr-2"></i> 清空未完成
+          </button>
+        </div>
+        
+        <!-- 已完成清单（下方） -->
+        <div class="wish-card card-hover">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold flex items-center text-success">
+              <i class="fa fa-check-circle mr-2"></i> 已完成清单
+            </h2>
+            <span id="completedCount" class="bg-success/10 text-success px-3 py-1 rounded-full text-sm font-medium">0项</span>
+          </div>
+          
+          <!-- 动态调整列表容器高度 -->
+          <div id="completedWishList" class="min-h-[80px] max-h-[350px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+            <!-- 已完成项目由JS动态生成 -->
+          </div>
+          
+          <button id="clearCompletedAll" class="w-full mt-4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg transition-all duration-300 flex items-center justify-center">
+            <i class="fa fa-trash-o mr-2"></i> 清空已完成
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 页脚 -->
+  <footer class="mt-12 py-6 text-center text-gray-500 text-sm bg-white/50 border-t border-gray-200">
+    <p>人生未完成清单转盘 &copy; 2025 | YoyoZ | 祝你所有愿望都能实现！</p>
+  </footer>
+
+  <script>
+    // 颜色数组 - 使用第一版本的颜色方案
+    const colors = [
+      '#7C3AED', '#EC4899', '#F59E0B', '#10B981', '#3B82F6', 
+      '#EF4444', '#8B5CF6', '#F97316', '#14B8A6', '#2563EB',
+      '#DC2626', '#A855F7', '#EA580C', '#0D9488', '#1E40AF'
+    ];
+    
+    // 时间和预算的中文映射
+    const timeLabels = {
+      day: '1天以内',
+      weekend: '周末（2天）',
+      week: '1周以内',
+      month: '1个月以内'
+    };
+    
+    const budgetLabels = {
+      low: '低（≤1000元）',
+      medium: '中（1000-5000元）',
+      high: '高（5000-20000元）',
+      luxury: '豪华（≥20000元）'
+    };
+    
+    // LocalStorage 键名
+    const STORAGE_KEY = 'lifeWishListData';
+    const STORAGE_VERSION = '1.0';
+    
+    // 全局变量
+    let wishItems = [];
+    let filteredItems = [];
+    let isSpinning = false;
+    
+    // DOM元素
+    const wheel = document.getElementById('wheel');
+    const spinButton = document.getElementById('spinButton');
+    const resultText = document.getElementById('resultText');
+    const itemDetails = document.getElementById('itemDetails');
+    const resultTime = document.getElementById('resultTime');
+    const resultBudget = document.getElementById('resultBudget');
+    const pendingWishList = document.getElementById('pendingWishList');
+    const completedWishList = document.getElementById('completedWishList');
+    const pendingCount = document.getElementById('pendingCount');
+    const completedCount = document.getElementById('completedCount');
+    const addItemForm = document.getElementById('addItemForm');
+    const applyFilter = document.getElementById('applyFilter');
+    const clearPendingAll = document.getElementById('clearPendingAll');
+    const clearCompletedAll = document.getElementById('clearCompletedAll');
+    const exportData = document.getElementById('exportData');
+    const importData = document.getElementById('importData');
+    const resetData = document.getElementById('resetData');
+    
+    // ==================== LocalStorage 功能 ====================
+    
+    // 保存数据到LocalStorage
+    function saveToLocalStorage() {
+      const dataToSave = {
+        version: STORAGE_VERSION,
+        lastUpdated: new Date().toISOString(),
+        wishItems: wishItems
+      };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+        console.log('数据已保存到LocalStorage');
+      } catch (error) {
+        console.error('保存数据到LocalStorage失败:', error);
+      }
+    }
+    
+    // 从LocalStorage加载数据
+    function loadFromLocalStorage() {
+      try {
+        const savedData = localStorage.getItem(STORAGE_KEY);
+        if (savedData) {
+          const parsedData = JSON.parse(savedData);
+          // 检查数据版本（可选）
+          if (parsedData.wishItems && Array.isArray(parsedData.wishItems)) {
+            wishItems = parsedData.wishItems;
+            console.log('从LocalStorage加载数据成功，共', wishItems.length, '个项目');
+            return true;
+          }
+        }
+      } catch (error) {
+        console.error('从LocalStorage加载数据失败:', error);
+      }
+      return false;
+    }
+    
+    // 导出数据为JSON文件
+    function exportDataToFile() {
+      const dataToExport = {
+        version: STORAGE_VERSION,
+        exportDate: new Date().toISOString(),
+        totalItems: wishItems.length,
+        pendingItems: wishItems.filter(item => !item.completed).length,
+        completedItems: wishItems.filter(item => item.completed).length,
+        wishItems: wishItems
+      };
+      
+      const dataStr = JSON.stringify(dataToExport, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `人生未完成清单_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      alert(`数据导出成功！共 ${wishItems.length} 个项目。`);
+    }
+    
+    // 从文件导入数据
+    function importDataFromFile() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json,application/json';
+      
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const importedData = JSON.parse(event.target.result);
+            
+            if (!importedData.wishItems || !Array.isArray(importedData.wishItems)) {
+              alert('导入失败：文件格式不正确！');
+              return;
+            }
+            
+            if (confirm(`确定要导入 ${importedData.wishItems.length} 个项目吗？这将覆盖当前数据。`)) {
+              wishItems = importedData.wishItems;
+              saveToLocalStorage();
+              renderWishLists();
+              applyFilters();
+              alert(`数据导入成功！共 ${wishItems.length} 个项目。`);
+            }
+          } catch (error) {
+            console.error('导入数据失败:', error);
+            alert('导入失败：文件格式不正确或已损坏！');
+          }
+        };
+        reader.readAsText(file);
+      };
+      
+      input.click();
+    }
+    
+    // 重置数据（恢复默认示例）
+    function resetToDefault() {
+      if (confirm('确定要重置所有数据吗？这将删除所有当前项目并恢复默认示例。')) {
+        wishItems = [
+          { id: Date.now() + 1, name: '跳伞体验', time: 'weekend', budget: 'high', completed: false },
+          { id: Date.now() + 2, name: '蹦极挑战', time: 'day', budget: 'medium', completed: false },
+          { id: Date.now() + 3, name: '看北极光', time: 'month', budget: 'luxury', completed: false },
+          { id: Date.now() + 4, name: '城市徒步', time: 'day', budget: 'low', completed: false }
+        ];
+        saveToLocalStorage();
+        renderWishLists();
+        applyFilters();
+        alert('数据已重置为默认示例！');
+      }
+    }
+    
+    // ==================== 主功能函数 ====================
+    
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      // 首先尝试从LocalStorage加载数据
+      const hasSavedData = loadFromLocalStorage();
+      
+      if (!hasSavedData) {
+        // 如果没有保存的数据，加载初始示例
+        loadInitialItems();
+      }
+      
+      // 应用初始筛选
+      applyFilters();
+      // 渲染两个清单
+      renderWishLists();
+      // 绑定事件
+      bindEvents();
+    });
+    
+    // 加载初始项目（仅当没有保存数据时使用）
+    function loadInitialItems() {
+      wishItems = [
+        { id: Date.now() + 1, name: '跳伞体验', time: 'weekend', budget: 'high', completed: false },
+        { id: Date.now() + 2, name: '蹦极挑战', time: 'day', budget: 'medium', completed: false },
+        { id: Date.now() + 3, name: '看北极光', time: 'month', budget: 'luxury', completed: false },
+        { id: Date.now() + 4, name: '城市徒步', time: 'day', budget: 'low', completed: false }
+      ];
+    }
+    
+    // 绑定事件
+    function bindEvents() {
+      // 转动按钮
+      spinButton.addEventListener('click', spinWheel);
+      
+      // 添加项目表单
+      addItemForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        addNewItem();
+      });
+      
+      // 应用筛选
+      applyFilter.addEventListener('click', applyFilters);
+      
+      // 清空未完成
+      clearPendingAll.addEventListener('click', clearPendingItems);
+      
+      // 清空已完成
+      clearCompletedAll.addEventListener('click', clearCompletedItems);
+      
+      // 数据管理按钮
+      exportData.addEventListener('click', exportDataToFile);
+      importData.addEventListener('click', importDataFromFile);
+      resetData.addEventListener('click', resetToDefault);
+      
+      // 未完成清单的事件
+      pendingWishList.addEventListener('click', (e) => {
+        if (e.target.closest('.delete-item')) {
+          const itemElement = e.target.closest('.wish-item');
+          const itemId = parseFloat(itemElement.dataset.id);
+          deleteItem(itemId);
+        }
+        if (e.target.closest('.complete-item')) {
+          const itemElement = e.target.closest('.wish-item');
+          const itemId = parseFloat(itemElement.dataset.id);
+          toggleCompleteStatus(itemId, true);
+        }
+      });
+      
+      // 已完成清单的事件
+      completedWishList.addEventListener('click', (e) => {
+        if (e.target.closest('.delete-item')) {
+          const itemElement = e.target.closest('.completed-item-card');
+          const itemId = parseFloat(itemElement.dataset.id);
+          deleteItem(itemId);
+        }
+        if (e.target.closest('.undo-complete')) {
+          const itemElement = e.target.closest('.completed-item-card');
+          const itemId = parseFloat(itemElement.dataset.id);
+          toggleCompleteStatus(itemId, false);
+        }
+      });
+    }
+    
+    // 添加新项目
+    function addNewItem() {
+      const nameInput = document.getElementById('itemName');
+      const timeSelect = document.getElementById('itemTime');
+      const budgetSelect = document.getElementById('itemBudget');
+      
+      const name = nameInput.value.trim();
+      const time = timeSelect.value;
+      const budget = budgetSelect.value;
+      
+      if (!name) return;
+      
+      const newItem = {
+        id: Date.now() + Math.random(),
+        name,
+        time,
+        budget,
+        completed: false
+      };
+      
+      wishItems.push(newItem);
+      
+      // 保存到LocalStorage
+      saveToLocalStorage();
+      
+      renderWishLists();
+      applyFilters();
+      
+      nameInput.value = '';
+      
+      alert('项目添加成功！已自动保存。');
+    }
+    
+    // 切换完成状态
+    function toggleCompleteStatus(itemId, isCompleted) {
+      const itemIndex = wishItems.findIndex(item => item.id === itemId);
+      if (itemIndex !== -1) {
+        wishItems[itemIndex].completed = isCompleted;
+        
+        // 保存到LocalStorage
+        saveToLocalStorage();
+        
+        renderWishLists();
+        applyFilters();
+      }
+    }
+    
+    // 删除项目
+    function deleteItem(itemId) {
+      const itemToDelete = wishItems.find(item => item.id === itemId);
+      if (confirm(`确定要删除"${itemToDelete.name}"吗？`)) {
+        wishItems = wishItems.filter(item => item.id !== itemId);
+        
+        // 保存到LocalStorage
+        saveToLocalStorage();
+        
+        renderWishLists();
+        applyFilters();
+      }
+    }
+    
+    // 清空未完成项目
+    function clearPendingItems() {
+      const pendingItems = wishItems.filter(item => !item.completed);
+      if (pendingItems.length === 0) {
+        alert('暂无未完成项目！');
+        return;
+      }
+      
+      if (confirm(`确定要清空所有未完成项目（共${pendingItems.length}项）吗？`)) {
+        wishItems = wishItems.filter(item => item.completed);
+        
+        // 保存到LocalStorage
+        saveToLocalStorage();
+        
+        renderWishLists();
+        applyFilters();
+      }
+    }
+    
+    // 清空已完成项目
+    function clearCompletedItems() {
+      const completedItems = wishItems.filter(item => item.completed);
+      if (completedItems.length === 0) {
+        alert('暂无已完成项目！');
+        return;
+      }
+      
+      if (confirm(`确定要清空所有已完成项目（共${completedItems.length}项）吗？`)) {
+        wishItems = wishItems.filter(item => !item.completed);
+        
+        // 保存到LocalStorage
+        saveToLocalStorage();
+        
+        renderWishLists();
+        applyFilters();
+      }
+    }
+    
+    // 应用筛选
+    function applyFilters() {
+      const selectedTime = document.querySelector('input[name="time"]:checked').value;
+      const selectedBudget = document.querySelector('input[name="budget"]:checked').value;
+      
+      filteredItems = wishItems.filter(item => {
+        const isPending = !item.completed;
+        const timeMatch = getTimePriority(item.time) <= getTimePriority(selectedTime);
+        const budgetMatch = getBudgetPriority(item.budget) <= getBudgetPriority(selectedBudget);
+        
+        return isPending && timeMatch && budgetMatch;
+      });
+      
+      renderWheel();
+      
+      if (filteredItems.length === 0) {
+        resultText.textContent = '没有符合条件的未完成项目';
+        itemDetails.classList.add('hidden');
+        spinButton.disabled = true;
+        spinButton.classList.add('opacity-50', 'cursor-not-allowed');
+      } else {
+        spinButton.disabled = false;
+        spinButton.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+    
+    // 获取时间优先级
+    function getTimePriority(time) {
+      const priorities = { day: 1, weekend: 2, week: 3, month: 4 };
+      return priorities[time] || 4;
+    }
+    
+    // 获取预算优先级
+    function getBudgetPriority(budget) {
+      const priorities = { low: 1, medium: 2, high: 3, luxury: 4 };
+      return priorities[budget] || 4;
+    }
+    
+    // 渲染两个清单
+    function renderWishLists() {
+      const pendingItems = wishItems.filter(item => !item.completed);
+      const completedItems = wishItems.filter(item => item.completed);
+      
+      renderPendingList(pendingItems);
+      renderCompletedList(completedItems);
+      updateItemCounts();
+    }
+    
+    // 渲染未完成清单
+    function renderPendingList(items) {
+      pendingWishList.innerHTML = '';
+      
+      if (items.length === 0) {
+        pendingWishList.innerHTML = `
+          <div class="text-center text-gray-500 py-4">
+            <i class="fa fa-lightbulb-o text-xl mb-2 text-primary/40"></i>
+            <p class="text-xs">暂无未完成项目，添加你的第一个愿望吧！</p>
+          </div>
+        `;
+        return;
+      }
+      
+      items.forEach(item => {
+        const itemElement = document.createElement('div');
+        itemElement.className = 'wish-item p-3 border border-gray-200 rounded-lg flex justify-between items-center hover:border-primary/50 transition-all';
+        itemElement.dataset.id = item.id;
+        
+        itemElement.innerHTML = `
+          <div class="flex-1">
+            <h3 class="font-medium text-sm">${item.name}</h3>
+            <div class="flex text-xs text-gray-500 mt-1">
+              <span class="mr-2"><i class="fa fa-clock-o mr-1"></i> ${timeLabels[item.time]}</span>
+              <span><i class="fa fa-money mr-1"></i> ${budgetLabels[item.budget].split('（')[0]}</span>
+            </div>
+          </div>
+          <div class="flex gap-1 ml-2">
+            <button class="complete-item text-success hover:text-success/80 transition-colors p-1" title="标记为完成">
+              <i class="fa fa-check-circle text-xs"></i>
+            </button>
+            <button class="delete-item text-red-500 hover:text-red-700 transition-colors p-1" title="删除">
+              <i class="fa fa-trash text-xs"></i>
+            </button>
+          </div>
+        `;
+        
+        pendingWishList.appendChild(itemElement);
+      });
+    }
+    
+    // 渲染已完成清单
+    function renderCompletedList(items) {
+      completedWishList.innerHTML = '';
+      
+      if (items.length === 0) {
+        completedWishList.innerHTML = `
+          <div class="text-center text-gray-500 py-4">
+            <i class="fa fa-trophy text-xl mb-2 text-accent/40"></i>
+            <p class="text-xs">完成愿望后勾选，这里会展示你的成就～</p>
+          </div>
+        `;
+        return;
+      }
+      
+      items.forEach(item => {
+        const itemElement = document.createElement('div');
+        itemElement.className = 'completed-item-card p-3 border border-success/20 rounded-lg bg-success/5 flex justify-between items-center hover:border-success/40 transition-all';
+        itemElement.dataset.id = item.id;
+        
+        itemElement.innerHTML = `
+          <div class="flex-1">
+            <h3 class="font-medium text-sm completed-item">${item.name}</h3>
+            <div class="flex text-xs text-gray-500 mt-1">
+              <span class="mr-2"><i class="fa fa-clock-o mr-1"></i> ${timeLabels[item.time]}</span>
+              <span><i class="fa fa-money mr-1"></i> ${budgetLabels[item.budget].split('（')[0]}</span>
+            </div>
+          </div>
+          <div class="flex gap-1 ml-2">
+            <button class="undo-complete text-gray-500 hover:text-gray-700 transition-colors p-1" title="取消完成">
+              <i class="fa fa-undo text-xs"></i>
+            </button>
+            <button class="delete-item text-red-400 hover:text-red-500 transition-colors p-1" title="删除">
+              <i class="fa fa-trash text-xs"></i>
+            </button>
+          </div>
+        `;
+        
+        completedWishList.appendChild(itemElement);
+      });
+    }
+    
+    // 更新计数
+    function updateItemCounts() {
+      const pendingCountNum = wishItems.filter(item => !item.completed).length;
+      const completedCountNum = wishItems.filter(item => item.completed).length;
+      
+      pendingCount.textContent = `${pendingCountNum}项`;
+      completedCount.textContent = `${completedCountNum}项`;
+    }
+    
+    // 渲染转盘
+    function renderWheel() {
+      wheel.innerHTML = '';
+      
+      if (filteredItems.length === 0) {
+        const noItemSector = document.createElement('div');
+        noItemSector.className = 'w-full h-full flex items-center justify-center bg-gray-100';
+        noItemSector.innerHTML = '<p class="text-gray-500 text-center px-4">没有符合条件的项目</p>';
+        wheel.appendChild(noItemSector);
+        return;
+      }
+      
+      const sliceAngle = 360 / filteredItems.length;
+      
+      filteredItems.forEach((item, index) => {
+        const sector = document.createElement('div');
+        const color = colors[index % colors.length];
+        
+        sector.className = 'absolute w-full h-full';
+        sector.style.transformOrigin = 'center center';
+        sector.style.transform = `rotate(${index * sliceAngle}deg)`;
+        
+        const content = document.createElement('div');
+        content.className = 'absolute w-1/2 h-full flex items-center justify-center';
+        content.style.left = '50%';
+        content.style.top = '0';
+        
+        const slice = document.createElement('div');
+        slice.className = 'relative w-full h-full flex items-center justify-center';
+        slice.style.background = color;
+        slice.style.clipPath = `polygon(0 0, 100% 0, 100% 100%)`;
+        
+        const text = document.createElement('div');
+        text.className = 'absolute w-full text-center text-white font-medium p-2';
+        text.style.transformOrigin = 'left center';
+        text.style.transform = `rotate(${sliceAngle / 2}deg) translateX(20px)`;
+        text.style.width = '100%';
+        
+        const shortText = item.name.length > 6 ? item.name.substring(0, 6) + '...' : item.name;
+        text.textContent = shortText;
+        
+        slice.appendChild(text);
+        content.appendChild(slice);
+        sector.appendChild(content);
+        
+        wheel.appendChild(sector);
+      });
+    }
+    
+    // 转动转盘
+    function spinWheel() {
+      if (isSpinning || filteredItems.length === 0) return;
+      
+      isSpinning = true;
+      spinButton.disabled = true;
+      spinButton.classList.add('opacity-50', 'cursor-not-allowed');
+      
+      resultText.textContent = '转动中...';
+      itemDetails.classList.add('hidden');
+      
+      const spinAngle = 360 * (3 + Math.random() * 2) + Math.random() * 360;
+      
+      wheel.style.transform = `rotate(${spinAngle}deg)`;
+      
+      setTimeout(() => {
+        const normalizedAngle = spinAngle % 360;
+        const sliceAngle = 360 / filteredItems.length;
+        const selectedIndex = Math.floor(normalizedAngle / sliceAngle);
+        const selectedItem = filteredItems[selectedIndex];
+        
+        resultText.textContent = selectedItem.name;
+        resultTime.textContent = timeLabels[selectedItem.time];
+        resultBudget.textContent = budgetLabels[selectedItem.budget];
+        itemDetails.classList.remove('hidden');
+        
+        isSpinning = false;
+        spinButton.disabled = false;
+        spinButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        
+        resultText.classList.add('animate-pulse');
+        setTimeout(() => {
+          resultText.classList.remove('animate-pulse');
+        }, 1000);
+        
+      }, 6000);
+    }
+  </script>
+</body>
+</html>
